@@ -1,7 +1,7 @@
 {
   "name": "@akku_21/bunnai-groq",
   "description": "let ai write commit messages for you",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": "Jan Philipp Michel jan.p.michel@gmail.com>",
   "publishConfig": {
     "access": "public"
