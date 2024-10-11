@@ -12,19 +12,19 @@ then you can select a commit message from the list and use it to commit your cha
 ## installation
 
 ```sh
-bun install -g @chhoumann/bunnai
+bun install -g @akku-21/bunnai-groq
 ```
 
 set up with your openai api key & preferred model:
 
 ```sh
-bunnai config
+bunnai-groq config
 ```
 
 ## usage
 
-you can specify custom templates. use `bunnai config` to edit the templates.
-when you invoke `bunnai`, you can specify a template name to use with `--template`.
+you can specify custom templates. use `bunnai-groq config` to edit the templates.
+when you invoke `bunnai-groq`, you can specify a template name to use with `--template`.
 
 ### as a menu
 
@@ -42,7 +42,7 @@ customCommands:
             - type: "menuFromCommand"
             title: "ai Commits"
             key: "Msg"
-            command: "bunx bunnai"
+            command: "bunx bunnai-groq"
             filter: '^(?P<number>\d+)\.\s(?P<message>.+)$'
             valueFormat: "{{ .message }}"
             labelFormat: "{{ .number }}: {{ .message | green }}"
@@ -65,7 +65,7 @@ customCommands:
           - type: "menuFromCommand"
             title: "AI Commits"
             key: "Msg"
-            command: "bunx bunnai"
+            command: "bunx bunnai-groq"
             filter: '^(?P<number>\d+)\.\s(?P<message>.+)$'
             valueFormat: "{{ .message }}"
             labelFormat: "{{ .number }}: {{ .message | green }}"
@@ -76,3 +76,4 @@ customCommands:
 check out these other projects that inspired this one:
 
 -   https://github.com/BuilderIO/ai-shell
+-   forked from https://github.com/chhoumann/bunnai
