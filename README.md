@@ -1,4 +1,4 @@
-# bunnai
+# bunnai-groq
 
 <p align="center">
   <img src="https://github.com/chhoumann/bunnai/assets/29108628/1ec69e68-7d5e-4a4d-b4d6-56e202e1c54c">
@@ -12,7 +12,7 @@ then you can select a commit message from the list and use it to commit your cha
 ## installation
 
 ```sh
-bun install -g @akku-21/bunnai-groq
+bun install -g @akku_21/bunnai-groq
 ```
 
 set up with your openai api key & preferred model:
