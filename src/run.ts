@@ -1,7 +1,7 @@
 import { $ } from "bun";
-import OpenAI from "openai";
 import { readConfigFile } from "./config";
 import simpleGit from "simple-git";
+import Groq from "groq-sdk";
 
 interface RunOptions {
 	verbose?: boolean;
@@ -90,15 +90,13 @@ export async function run(options: RunOptions, templateName?: string) {
 		console.debug("Template rendered with git diff.");
 	}
 
-	const oai = new OpenAI({
-		apiKey: config.OPENAI_API_KEY,
-	});
+	const groq = new Groq({ apiKey: config.OPENAI_API_KEY });
 
 	try {
 		if (options.verbose) {
 			console.debug("Sending request to OpenAI...");
 		}
-		const response = await oai.chat.completions.create({
+		const response = await groq.chat.completions.create({
 			messages: [
 				{
 					role: "system",

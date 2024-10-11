@@ -1,8 +1,8 @@
 import path from "path";
 import os from "os";
 import * as p from "@clack/prompts";
-import OpenAI from "openai";
 import { spawn } from "child_process";
+import Groq from "groq-sdk";
 import { template } from "./template";
 
 async function editFile(filePath: string, onExit: () => void) {
@@ -69,7 +69,7 @@ export interface Config {
 
 const DEFAULT_CONFIG: Config = {
 	OPENAI_API_KEY: "",
-	model: "gpt-4-0125-preview",
+	model: "llama-3.1-70b-versatile",
 	templates: {
 		default: path.join(os.homedir(), ".bunnai-template"),
 	},
@@ -137,7 +137,7 @@ export async function showConfigUI() {
 					label: "OpenAI API Key",
 					value: "OPENAI_API_KEY",
 					hint: hasOwn<Config, keyof Config>(config, "OPENAI_API_KEY")
-						? `sk-...${config.OPENAI_API_KEY.slice(-3)}`
+						? `gsk-...${config.OPENAI_API_KEY.slice(-3)}`
 						: "not set",
 				},
 				{
@@ -241,10 +241,8 @@ async function getModels() {
 		throw new Error("OPENAI_API_KEY is not set");
 	}
 
-	const oai = new OpenAI({
-		apiKey,
-	});
+	const groq = new Groq({ apiKey });
 
-	const models = await oai.models.list();
+	const models = await groq.models.list();
 	return models.data.map((model) => model.id);
 }
