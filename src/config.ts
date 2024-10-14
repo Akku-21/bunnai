@@ -2,7 +2,6 @@ import path from "path";
 import os from "os";
 import * as p from "@clack/prompts";
 import { spawn } from "child_process";
-import Groq from "groq-sdk";
 import { template } from "./template";
 
 async function editFile(filePath: string, onExit: () => void) {
@@ -20,58 +19,29 @@ async function editFile(filePath: string, onExit: () => void) {
 					value: "nano",
 				},
 				{
-					label: "cancel",
+					label: "Cancel",
 					value: "cancel",
 				},
 			],
 		}));
 
 	if (!editor || typeof editor !== "string" || editor === "cancel") {
+	console.log("No editor selected, exiting.")
 		return;
 	}
-
-	let additionalArgs: string[] = [];
-	if (/^(.[/\\])?code(.exe)?(\s+--.+)*/i.test(editor)) {
-		editor = "code";
-		additionalArgs = ["--wait"];
-	}
-
-	const child = spawn(editor, [filePath, ...additionalArgs], {
-		stdio: "inherit",
-	});
-
-	await new Promise((resolve, reject) => {
-		// biome-ignore lint/suspicious/noExplicitAny: unknown types to me
-		child.on("exit", async (_e: any, _code: any) => {
-			try {
-				resolve(await onExit());
-			} catch (error) {
-				reject(error);
-			}
-		});
-	});
-}
-
-function hasOwn<T extends object, K extends PropertyKey>(
-	obj: T,
-	key: K,
-): obj is T & Record<K, unknown> {
-	return key in obj && Object.prototype.hasOwnProperty.call(obj, key);
 }
 
 export const configPath = path.join(os.homedir(), ".bunnai");
 
 export interface Config {
-	OPENAI_API_KEY: string;
-	model: string;
+  count: string;
 	templates: Record<string, string>;
 }
 
 const DEFAULT_CONFIG: Config = {
-	OPENAI_API_KEY: "",
-	model: "llama-3.1-70b-versatile",
+	count: "10",
 	templates: {
-		default: path.join(os.homedir(), ".bunnai-template"),
+		default: path.join(os.homedir(), ".template"),
 	},
 };
 
@@ -134,18 +104,6 @@ export async function showConfigUI() {
 			message: "set config",
 			options: [
 				{
-					label: "OpenAI API Key",
-					value: "OPENAI_API_KEY",
-					hint: hasOwn<Config, keyof Config>(config, "OPENAI_API_KEY")
-						? `gsk-...${config.OPENAI_API_KEY.slice(-3)}`
-						: "not set",
-				},
-				{
-					label: "Model",
-					value: "model",
-					hint: config.model,
-				},
-				{
 					label: "Prompt Template",
 					value: "template",
 					hint: "edit the prompt template",
@@ -156,31 +114,9 @@ export async function showConfigUI() {
 					hint: "exit",
 				},
 			],
-		})) as keyof Config | "template" | "cancel" | symbol;
+		})) as keyof Config | "template" | "cancel" ;
 
-		if (p.isCancel(choice)) {
-			return;
-		}
-
-		if (choice === "OPENAI_API_KEY") {
-			const apiKey = await p.text({
-				message: "OpenAI API Key",
-				initialValue: config.OPENAI_API_KEY,
-			});
-
-			await setConfigs([["OPENAI_API_KEY", apiKey as string]]);
-		} else if (choice === "model") {
-			const model = await p.select({
-				message: "Model",
-				options: (await getModels()).map((model) => ({
-					label: model,
-					value: model,
-				})),
-				initialValue: config.model,
-			});
-
-			await setConfigs([["model", model as string]]);
-		} else if (choice === "template") {
+		if (choice === "template") {
 			const templateChoice = (await p.select({
 				message: "Choose a template to edit",
 				options: [
@@ -223,7 +159,7 @@ export async function showConfigUI() {
 			}
 		}
 
-		if (p.isCancel(choice)) {
+		if (p.isCancel(choice) || choice === "cancel") {
 			return;
 		}
 
@@ -232,17 +168,4 @@ export async function showConfigUI() {
 	} catch (error: any) {
 		console.error(`\n${error.message}\n`);
 	}
-}
-
-async function getModels() {
-	const apiKey = (await readConfigFile()).OPENAI_API_KEY;
-
-	if (!apiKey) {
-		throw new Error("OPENAI_API_KEY is not set");
-	}
-
-	const groq = new Groq({ apiKey });
-
-	const models = await groq.models.list();
-	return models.data.map((model) => model.id);
 }

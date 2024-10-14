@@ -1,7 +1,7 @@
 import { $ } from "bun";
 import { readConfigFile } from "./config";
 import simpleGit from "simple-git";
-import Groq from "groq-sdk";
+import { prompt } from "./aichat";
 
 interface RunOptions {
 	verbose?: boolean;
@@ -19,7 +19,20 @@ async function getStagedDiff(target_dir: string) {
 	}
 }
 
+async function getGitLog(target_dir: string) {
+  try {
+    const git = simpleGit(target_dir);
+    const log = await git.log(["-n 10", "--pretty=format:%h%s", "--no-merges","--first-parent"]);
+
+    return log.all[0].hash;
+  } catch (error) {
+    console.error("Error getting git log:", error);
+    throw error; // Re-throw the error after logging it
+  }
+}
+
 export async function run(options: RunOptions, templateName?: string) {
+
 	const config = await readConfigFile();
 	if (options.verbose) {
 		console.debug("Configuration loaded successfully.");
@@ -43,7 +56,8 @@ export async function run(options: RunOptions, templateName?: string) {
 			console.debug("Using default template.");
 		}
 	}
-
+	//TODO
+templateFilePath = 'src/template.ts'
 	const templateFile = Bun.file(templateFilePath);
 	if (!(await templateFile.exists())) {
 		console.error(
@@ -65,16 +79,6 @@ export async function run(options: RunOptions, templateName?: string) {
 		console.debug(`Target directory: ${target_dir}`);
 	}
 
-	if (!config.OPENAI_API_KEY) {
-		console.error("OPENAI_API_KEY is not set");
-		process.exit(1);
-	}
-
-	if (!config.model) {
-		console.error("Model is not set");
-		process.exit(1);
-	}
-
 	const diff = await getStagedDiff(target_dir);
 	if (options.verbose) {
 		console.debug("Git diff retrieved:\n", diff);
@@ -85,44 +89,38 @@ export async function run(options: RunOptions, templateName?: string) {
 		process.exit(1);
 	}
 
-	const rendered_template = template.replace("{{diff}}", diff);
+	let rendered_template = template.replace("{{diff}}", diff);
+
+	const gitlog = await getGitLog(target_dir);
+	if (options.verbose) {
+	  console.debug("Git log retrieved:\n", gitlog);
+	}
+
+	rendered_template = rendered_template.replace("{{gitlog}}", gitlog);
+
+	 rendered_template = rendered_template.replace("{{count}}", config.count || "5");
 	if (options.verbose) {
 		console.debug("Template rendered with git diff.");
 	}
 
-	const groq = new Groq({ apiKey: config.OPENAI_API_KEY });
+	const response = await prompt(rendered_template);
 
 	try {
 		if (options.verbose) {
 			console.debug("Sending request to OpenAI...");
 		}
-		const response = await groq.chat.completions.create({
-			messages: [
-				{
-					role: "system",
-					content:
-						"You are a commit message generator. I will provide you with a git diff, and I would like you to generate an appropriate commit message using the conventional commit format. Do not write any explanations or other words, just reply with the commit message.",
-				},
-				{
-					role: "user",
-					content: rendered_template,
-				},
-			],
-			model: config.model,
-		});
 
 		if (options.verbose) {
 			console.debug("Response received from OpenAI.");
 			console.debug(JSON.stringify(response, null, 2));
 		}
 
-		const content = response.choices[0].message.content;
-		if (!content) {
+		if (!response) {
 			console.error("Failed to generate commit message");
 			process.exit(1);
 		}
 
-		console.log(content.trim());
+		console.log(response.trim());
 		if (options.verbose) {
 			console.debug("Commit message generated and outputted.");
 		}
