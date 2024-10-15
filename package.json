@@ -1,7 +1,7 @@
 {
   "name": "@akku_21/ai-commmit-message-generator",
   "description": "let ai write commit messages for you",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Jan Philipp Michel jan.p.michel@gmail.com>",
   "publishConfig": {
     "access": "public"
