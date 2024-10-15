@@ -1,4 +1,4 @@
-# bunnai-groq
+# ai-commit-message-generator
 
 <p align="center">
   <img src="https://github.com/chhoumann/bunnai/assets/29108628/1ec69e68-7d5e-4a4d-b4d6-56e202e1c54c">
@@ -9,22 +9,25 @@ have ai write commit messages for you in [lazygit](https://github.com/jesseduffi
 uses openai to generate commit message suggestions based on the diff between the current branch and master.
 then you can select a commit message from the list and use it to commit your changes.
 
+## dependencies
+//markup link
+-   [aichat](https://github.com/sigoden/aichat)
+install and configure to use this plugin.
+
 ## installation
 
 ```sh
-bun install -g @akku_21/bunnai-groq
+bun install -g @akku_21/ai-commit-message-generator
 ```
 
-set up with your openai api key & preferred model:
-
 ```sh
-bunnai-groq config
+cm-gen config
 ```
 
 ## usage
 
-you can specify custom templates. use `bunnai-groq config` to edit the templates.
-when you invoke `bunnai-groq`, you can specify a template name to use with `--template`.
+you can specify custom templates. use `cm-gen config` to edit the templates.
+when you invoke `cm-gen`, you can specify a template name to use with `--template`.
 
 ### as a menu
 
@@ -42,7 +45,7 @@ customCommands:
             - type: "menuFromCommand"
             title: "ai Commits"
             key: "Msg"
-            command: "bunx bunnai-groq"
+            command: "bunx cm-gen"
             filter: '^(?P<number>\d+)\.\s(?P<message>.+)$'
             valueFormat: "{{ .message }}"
             labelFormat: "{{ .number }}: {{ .message | green }}"
@@ -65,7 +68,7 @@ customCommands:
           - type: "menuFromCommand"
             title: "AI Commits"
             key: "Msg"
-            command: "bunx bunnai-groq"
+            command: "bunx cm-gen"
             filter: '^(?P<number>\d+)\.\s(?P<message>.+)$'
             valueFormat: "{{ .message }}"
             labelFormat: "{{ .number }}: {{ .message | green }}"
@@ -76,4 +79,5 @@ customCommands:
 check out these other projects that inspired this one:
 
 -   https://github.com/BuilderIO/ai-shell
+-   https://github.com/sigoden/aichat
 -   forked from https://github.com/chhoumann/bunnai
